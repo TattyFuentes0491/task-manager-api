@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Task;
-//use illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Http;
+use App\Services\ExternalPostService;
 
 class TaskController extends Controller
 {
@@ -84,22 +84,22 @@ class TaskController extends Controller
     }
 
     //endpoint externo https://jsonplaceholder.typicode.com/posts
-    public function fctExternalPosts(){
-        try{
-            $responseHttp = http::timeout(5)->get('http://jsonplaceholder.typicode.com/posts');
+    public function fctGetExternalPosts(ExternalPostService $service){
+    try {
 
-            if($responseHttp->failed()){
-                return response() -> json(['message' => 'External API error.'], 502);
-            }
+        $data = $service->getPosts();
 
-             // Limitar resultados a 15
-            $data = collect($responseHttp->json()) -> take(15)->values();
+        return response()->json([
+            'message' => 'External posts retrieved successfully',
+            'data' => $data
+        ], 200);
 
-            return response() -> json(['message' => 'External posts retrieved successfully.'], 200);
-        }
-        catch (\Exception $e){
-            return response() -> json(['message' => 'External service unavailable',
-                                        'error' => $e->getMessage()], 503);
-        }
+    } catch (\Exception $e) {
+
+        return response()->json([
+        'message' => 'External service unavailable',
+        'error' => $e->getMessage()
+    ], 503);
     }
+}
 }
